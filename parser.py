@@ -1,37 +1,26 @@
 import requests
+import xml.etree.ElementTree as etree
 from lxml import html
+import gzip
 
-page = requests.get("https://web.nvd.nist.gov/view/vuln/search-results?query=&search_type=all&cves=on")
+url = 'https://static.nvd.nist.gov/feeds/xml/cve/nvdcve-2.0-2002.xml.gz'
+page = requests.get(url)
 doc = html.fromstring(page.content)
 
-links = []
-info = []
+# saving archive
+with open('xml.gz', 'wb') as f:
+    f.write(page.content)
+
+# reding archive
+with gzip.open('xml.gz', 'rb') as f:
+    xml_content = f.read()
+
+# saving archive content (xml doc)
+with open('xml', 'wb') as f:
+    f.write(xml_content)
+
+# reading xml doc content
+with open('xml', 'rb') as f:
+    xml_doc = f.read()
 
 
-def get_cve_links(doc, links):
-    hrefs = doc.xpath('//dt/a')
-
-    for href in hrefs:
-        links.append(href.get("href"))
-
-    return links
-
-
-def get_cve_info(links, info):
-    base_url = "https://web.nvd.nist.gov/view/vuln/"
-
-    for link in links:
-        url = base_url + link
-
-        page = requests.get(url)
-        doc = html.fromstring(page.content)
-
-        overview = doc.xpath('//h4[text()="Overview"]/following-sibling::p/text()')
-        info.append(overview)
-
-    return info
-
-
-links = get_cve_links(doc, links)
-info = get_cve_info(links, info)
-print(info)
