@@ -11,8 +11,11 @@ var jsonNames = [
     'CVE-2014', 'CVE-2015',
     'CVE-2016', 'CVE-2017'];
 
+var getCVENames = function() {
+    return jsonNames;
+};
 
-exports.getFromJSONFile = function (jsonName, innerTag, outerTag) {
+var getFromJSONFile = function (jsonName, innerTag, outerTag) {
     var basePath = '/home/k/PyCharm Projects/parser/CVEs/JSONs/';
     var contents = fs.readFileSync(basePath + jsonName + '.json');
     var jsonContent = JSON.parse(contents);
@@ -36,14 +39,17 @@ exports.getFromJSONFile = function (jsonName, innerTag, outerTag) {
     return resData;
 };
 
-exports.getCVENames = function() {
-    return jsonNames;
-};
-
-exports.getCVENamesForYear = function(year) {
-    var names = module.getCVENames();
+var getCVENamesForYear = function(year) {
+    var names = getCVENames();
 
     return names.filter(function (name) {
         return year === name.slice(4);
     });
 };
+
+
+module.exports = getFromJSONFile;
+
+module.exports = getCVENamesForYear;
+
+module.exports = getCVENames;
