@@ -47,9 +47,6 @@ var getCVENamesForYear = function(year) {
     });
 };
 
-
-module.exports = getFromJSONFile;
-
-module.exports = getCVENamesForYear;
-
-module.exports = getCVENames;
+module.exports.getFromJSONFile = getFromJSONFile;
+module.exports.getCVENamesForYear = getCVENamesForYear;
+module.exports.getCVENames = getCVENames;
