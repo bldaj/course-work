@@ -15,26 +15,26 @@ xml_names = ['CVE-Modified', 'CVE-Recent',
 
 
 def create_namespaces_dict(root):
-    namespaces_dict = {}
+    tag_dict = {}
 
-    namespaces_dict['entry'] = '{%s}entry' % root.nsmap[None]
+    tag_dict['entry'] = '{%s}entry' % root.nsmap[None]
 
-    namespaces_dict['cpe-lang:fact-ref'] = '{%s}fact-ref' % root.nsmap['cpe-lang']
+    tag_dict['cpe-lang:fact-ref'] = '{%s}fact-ref' % root.nsmap['cpe-lang']
 
-    namespaces_dict['cvss:score'] = '{%s}score' % root.nsmap['cvss']
-    namespaces_dict['cvss:access-vector'] = '{%s}access-vector' % root.nsmap['cvss']
-    namespaces_dict['cvss:access-complexity'] = '{%s}access-complexity' % root.nsmap['cvss']
-    namespaces_dict['cvss:authentication'] = '{%s}authentication' % root.nsmap['cvss']
-    namespaces_dict['cvss:confidentiality-impact'] = '{%s}confidentiality-impact' % root.nsmap['cvss']
-    namespaces_dict['cvss:integrity-impact'] = '{%s}integrity-impact' % root.nsmap['cvss']
-    namespaces_dict['cvss:availability-impact'] = '{%s}availability-impact' % root.nsmap['cvss']
-    namespaces_dict['cvss:source'] = '{%s}source' % root.nsmap['cvss']
-    namespaces_dict['cvss:generated-on-datetime'] = '{%s}generated-on-datetime' % root.nsmap['cvss']
+    tag_dict['cvss:score'] = '{%s}score' % root.nsmap['cvss']
+    tag_dict['cvss:access-vector'] = '{%s}access-vector' % root.nsmap['cvss']
+    tag_dict['cvss:access-complexity'] = '{%s}access-complexity' % root.nsmap['cvss']
+    tag_dict['cvss:authentication'] = '{%s}authentication' % root.nsmap['cvss']
+    tag_dict['cvss:confidentiality-impact'] = '{%s}confidentiality-impact' % root.nsmap['cvss']
+    tag_dict['cvss:integrity-impact'] = '{%s}integrity-impact' % root.nsmap['cvss']
+    tag_dict['cvss:availability-impact'] = '{%s}availability-impact' % root.nsmap['cvss']
+    tag_dict['cvss:source'] = '{%s}source' % root.nsmap['cvss']
+    tag_dict['cvss:generated-on-datetime'] = '{%s}generated-on-datetime' % root.nsmap['cvss']
 
-    namespaces_dict['vuln:cwe'] = '{%s}cwe' % root.nsmap['vuln']
-    namespaces_dict['vuln:summary'] = '{%s}summary' % root.nsmap['vuln']
+    tag_dict['vuln:cwe'] = '{%s}cwe' % root.nsmap['vuln'] # id
+    tag_dict['vuln:summary'] = '{%s}summary' % root.nsmap['vuln']
 
-    return namespaces_dict
+    return tag_dict
 
 
 def prepare_data_for_xml_entry(entry, namespaces_dict):
