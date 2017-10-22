@@ -14,29 +14,6 @@ xml_names = ['CVE-Modified', 'CVE-Recent',
              'CVE-2016', 'CVE-2017']
 
 
-def create_namespaces_dict(root):
-    tag_dict = {}
-
-    tag_dict['entry'] = '{%s}entry' % root.nsmap[None]
-
-    tag_dict['cpe-lang:fact-ref'] = '{%s}fact-ref' % root.nsmap['cpe-lang']
-
-    tag_dict['cvss:score'] = '{%s}score' % root.nsmap['cvss']
-    tag_dict['cvss:access-vector'] = '{%s}access-vector' % root.nsmap['cvss']
-    tag_dict['cvss:access-complexity'] = '{%s}access-complexity' % root.nsmap['cvss']
-    tag_dict['cvss:authentication'] = '{%s}authentication' % root.nsmap['cvss']
-    tag_dict['cvss:confidentiality-impact'] = '{%s}confidentiality-impact' % root.nsmap['cvss']
-    tag_dict['cvss:integrity-impact'] = '{%s}integrity-impact' % root.nsmap['cvss']
-    tag_dict['cvss:availability-impact'] = '{%s}availability-impact' % root.nsmap['cvss']
-    tag_dict['cvss:source'] = '{%s}source' % root.nsmap['cvss']
-    tag_dict['cvss:generated-on-datetime'] = '{%s}generated-on-datetime' % root.nsmap['cvss']
-
-    tag_dict['vuln:cwe'] = '{%s}cwe' % root.nsmap['vuln'] # id
-    tag_dict['vuln:summary'] = '{%s}summary' % root.nsmap['vuln']
-
-    return tag_dict
-
-
 def prepare_data_for_xml_entry(entry, namespaces_dict):
     data = {'cve-id': None,
             'cpe-lang:fact-ref': None,
@@ -100,10 +77,27 @@ def prepare_data_for_xml_entry(entry, namespaces_dict):
     return data
 
 
-def save_data(json_file, name):
-    with open('CVEs/JSONs/%s.json' % name, 'a') as f:
-        json.dump(json_file, f, indent=4, separators=(',', ': '))
-        f.write('\n')
+def create_namespaces_dict(root):
+    tag_dict = {}
+
+    tag_dict['entry'] = '{%s}entry' % root.nsmap[None]
+
+    tag_dict['cpe-lang:fact-ref'] = '{%s}fact-ref' % root.nsmap['cpe-lang']
+
+    tag_dict['cvss:score'] = '{%s}score' % root.nsmap['cvss']
+    tag_dict['cvss:access-vector'] = '{%s}access-vector' % root.nsmap['cvss']
+    tag_dict['cvss:access-complexity'] = '{%s}access-complexity' % root.nsmap['cvss']
+    tag_dict['cvss:authentication'] = '{%s}authentication' % root.nsmap['cvss']
+    tag_dict['cvss:confidentiality-impact'] = '{%s}confidentiality-impact' % root.nsmap['cvss']
+    tag_dict['cvss:integrity-impact'] = '{%s}integrity-impact' % root.nsmap['cvss']
+    tag_dict['cvss:availability-impact'] = '{%s}availability-impact' % root.nsmap['cvss']
+    tag_dict['cvss:source'] = '{%s}source' % root.nsmap['cvss']
+    tag_dict['cvss:generated-on-datetime'] = '{%s}generated-on-datetime' % root.nsmap['cvss']
+
+    tag_dict['vuln:cwe'] = '{%s}cwe' % root.nsmap['vuln'] # id
+    tag_dict['vuln:summary'] = '{%s}summary' % root.nsmap['vuln']
+
+    return tag_dict
 
 
 def parse_xml_doc(name):
@@ -118,10 +112,16 @@ def parse_xml_doc(name):
     return json_file
 
 
+def save_data(json_file, name):
+    with open('CVEs/JSONs/%s.json' % name, 'w') as f:
+        print('Creating JSON file: %s' % name)
+        json.dump(json_file, f, indent=4, separators=(',', ': '))
+        f.write('\n')
+
+
 def create_json_docs():
     for xml_name in xml_names:
-        json_file = parse_xml_doc(xml_name)
-        save_data(json_file, xml_name)
+        save_data(parse_xml_doc(xml_name), xml_name)
 
 
 begin_time = time.time()
@@ -130,4 +130,4 @@ create_json_docs()
 
 end_time = time.time()
 
-print(end_time - begin_time)
+print('Summary time: %s' % (end_time - begin_time))
