@@ -1,3 +1,4 @@
+import os
 import requests
 import gzip
 import time
@@ -25,6 +26,20 @@ links_dict = {
 }
 
 
+def create_direcory_structure():
+    if not os.path.exists('CVEs'):
+        os.mkdir('CVEs')
+
+    if not os.path.exists('CVEs/Archives'):
+        os.mkdir('CVEs/Archives')
+
+    if not os.path.exists('CVEs/XMLs'):
+        os.mkdir('CVEs/XMLs')
+
+    if not os.path.exists('CVEs/JSONs'):
+        os.mkdir('CVEs/JSONs')
+
+
 def download_xml_archive(links_dict):
     for name, url in links_dict.items():
         print('Request to: %s' % name)
@@ -48,6 +63,7 @@ def download_xml_archive(links_dict):
 
 begin_time = time.time()
 
+create_direcory_structure()
 download_xml_archive(links_dict)
 
 end_time = time.time()
