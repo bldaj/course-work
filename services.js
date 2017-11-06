@@ -16,7 +16,7 @@ var getCVENames = function() {
 };
 
 var getFromJSONFile = function (jsonName, innerTag, outerTag) {
-    var basePath = '/home/k/PyCharm Projects/parser/CVEs/JSONs/';
+    var basePath = '/home/k/Projects/course-work/CVEs/JSONs/';
     var contents = fs.readFileSync(basePath + jsonName + '.json');
     var jsonContent = JSON.parse(contents);
 
