@@ -1,7 +1,11 @@
-from lxml import etree
-import json
 import time
+from pymongo import MongoClient
+from lxml import etree
 
+client = MongoClient()
+db = client.CVE
+
+client.drop_database('CVE')
 
 xml_names = ['CVE-Modified', 'CVE-Recent',
              'CVE-2002', 'CVE-2003',
@@ -12,6 +16,22 @@ xml_names = ['CVE-Modified', 'CVE-Recent',
              'CVE-2012', 'CVE-2013',
              'CVE-2014', 'CVE-2015',
              'CVE-2016', 'CVE-2017']
+
+
+def create_namespaces_dict(root):
+    tag_dict = {'entry': '{%s}entry' % root.nsmap[None], 'cpe-lang:fact-ref': '{%s}fact-ref' % root.nsmap['cpe-lang'],
+                'cvss:score': '{%s}score' % root.nsmap['cvss'],
+                'cvss:access-vector': '{%s}access-vector' % root.nsmap['cvss'],
+                'cvss:access-complexity': '{%s}access-complexity' % root.nsmap['cvss'],
+                'cvss:authentication': '{%s}authentication' % root.nsmap['cvss'],
+                'cvss:confidentiality-impact': '{%s}confidentiality-impact' % root.nsmap['cvss'],
+                'cvss:integrity-impact': '{%s}integrity-impact' % root.nsmap['cvss'],
+                'cvss:availability-impact': '{%s}availability-impact' % root.nsmap['cvss'],
+                'cvss:source': '{%s}source' % root.nsmap['cvss'],
+                'cvss:generated-on-datetime': '{%s}generated-on-datetime' % root.nsmap['cvss'],
+                'vuln:cwe': '{%s}cwe' % root.nsmap['vuln'], 'vuln:summary': '{%s}summary' % root.nsmap['vuln']}
+
+    return tag_dict
 
 
 def prepare_data_for_xml_entry(entry, namespaces_dict):
@@ -77,56 +97,25 @@ def prepare_data_for_xml_entry(entry, namespaces_dict):
     return data
 
 
-def create_namespaces_dict(root):
-    tag_dict = {}
-
-    tag_dict['entry'] = '{%s}entry' % root.nsmap[None]
-
-    tag_dict['cpe-lang:fact-ref'] = '{%s}fact-ref' % root.nsmap['cpe-lang']
-
-    tag_dict['cvss:score'] = '{%s}score' % root.nsmap['cvss']
-    tag_dict['cvss:access-vector'] = '{%s}access-vector' % root.nsmap['cvss']
-    tag_dict['cvss:access-complexity'] = '{%s}access-complexity' % root.nsmap['cvss']
-    tag_dict['cvss:authentication'] = '{%s}authentication' % root.nsmap['cvss']
-    tag_dict['cvss:confidentiality-impact'] = '{%s}confidentiality-impact' % root.nsmap['cvss']
-    tag_dict['cvss:integrity-impact'] = '{%s}integrity-impact' % root.nsmap['cvss']
-    tag_dict['cvss:availability-impact'] = '{%s}availability-impact' % root.nsmap['cvss']
-    tag_dict['cvss:source'] = '{%s}source' % root.nsmap['cvss']
-    tag_dict['cvss:generated-on-datetime'] = '{%s}generated-on-datetime' % root.nsmap['cvss']
-
-    tag_dict['vuln:cwe'] = '{%s}cwe' % root.nsmap['vuln'] # id
-    tag_dict['vuln:summary'] = '{%s}summary' % root.nsmap['vuln']
-
-    return tag_dict
-
-
 def parse_xml_doc(name):
     root = etree.parse('CVEs/XMLs/%s' % name).getroot()
     namespaces_dict = create_namespaces_dict(root)
-    json_file = []
+    collection = db['%s' % name]
 
     for entry in root.iter(namespaces_dict['entry']):
         data = prepare_data_for_xml_entry(entry, namespaces_dict)
-        json_file.append(data)
-
-    return json_file
+        collection.insert_one(data)
 
 
-def save_data(json_file, name):
-    with open('CVEs/JSONs/%s.json' % name, 'w') as f:
-        print('Creating JSON file: %s' % name)
-        json.dump(json_file, f, indent=4, separators=(',', ': '))
-        f.write('\n')
-
-
-def create_json_docs():
+def write_data_to_mongoDB():
     for xml_name in xml_names:
-        save_data(parse_xml_doc(xml_name), xml_name)
+        print('Working on: %s' % xml_name)
+        parse_xml_doc(xml_name)
 
 
 begin_time = time.time()
 
-create_json_docs()
+write_data_to_mongoDB()
 
 end_time = time.time()
 

@@ -36,9 +36,6 @@ def create_direcory_structure():
     if not os.path.exists('CVEs/XMLs'):
         os.mkdir('CVEs/XMLs')
 
-    if not os.path.exists('CVEs/JSONs'):
-        os.mkdir('CVEs/JSONs')
-
 
 def download_xml_archive(links_dict):
     for name, url in links_dict.items():
