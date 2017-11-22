@@ -1,5 +1,6 @@
-var fs = require('fs');
+var MongoClient = require('mongodb').MongoClient;
 
+var url = 'mongodb://localhost:27017/CVE';
 var jsonNames = [
     'CVE-Modified', 'CVE-Recent',
     'CVE-2002', 'CVE-2003',
@@ -15,28 +16,28 @@ var getCVENames = function() {
     return jsonNames;
 };
 
-var getFromJSONFile = function (jsonName, innerTag, outerTag) {
-    var basePath = '/home/k/Projects/course-work/CVEs/JSONs/';
-    var contents = fs.readFileSync(basePath + jsonName + '.json');
-    var jsonContent = JSON.parse(contents);
-
-    var resData = [];
-
-    for (var i in jsonContent) {
-        if (outerTag){
-            resData.push(jsonContent[i][innerTag][outerTag]);
-        }
-        else {
-            if (innerTag) {
-                resData.push(jsonContent[i][innerTag]);
+var getData = function (CVEname) {
+    return new Promise(function (resolve, reject) {
+        MongoClient.connect(url, function (err, db) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(db);
             }
-            else {
-                resData.push(jsonContent[i]);
-            }
-        }
-    }
+        })
+    }).then(function (db) {
+        return new Promise(function (resolve, reject) {
+            var collection = db.collection(CVEname);
 
-    return resData;
+            collection.find().toArray(function (err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            })
+        })
+    })
 };
 
 var getCVENamesForYear = function(year) {
@@ -47,6 +48,6 @@ var getCVENamesForYear = function(year) {
     });
 };
 
-module.exports.getFromJSONFile = getFromJSONFile;
+module.exports.getData = getData;
 module.exports.getCVENamesForYear = getCVENamesForYear;
 module.exports.getCVENames = getCVENames;

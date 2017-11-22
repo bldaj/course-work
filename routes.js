@@ -18,7 +18,9 @@ module.exports = function (app) {
         var result = services.getCVENamesForYear(year);
 
         if (result.length) {
-            res.send(services.getFromJSONFile(result[0]));
+            services.getData(result[0]).then(function (data) {
+                res.send(data);
+            });
         } else {
             res.send("Nothing found");
         }
