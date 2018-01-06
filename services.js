@@ -1,7 +1,7 @@
 var MongoClient = require('mongodb').MongoClient;
 
-var url = 'mongodb://localhost:27017/CVE';
-var jsonNames = [
+const url = 'mongodb://localhost:27017/CVE';
+const CVENames = [
     'CVE-Modified', 'CVE-Recent',
     'CVE-2002', 'CVE-2003',
     'CVE-2004', 'CVE-2005',
@@ -13,10 +13,10 @@ var jsonNames = [
     'CVE-2016', 'CVE-2017'];
 
 var getCVENames = function() {
-    return jsonNames;
+    return CVENames;
 };
 
-var getData = function (CVEname) {
+var getDataFromCVECollection = function (CVECollection) {
     return new Promise(function (resolve, reject) {
         MongoClient.connect(url, function (err, db) {
             if (err) {
@@ -27,9 +27,7 @@ var getData = function (CVEname) {
         })
     }).then(function (db) {
         return new Promise(function (resolve, reject) {
-            var collection = db.collection(CVEname);
-
-            collection.find().toArray(function (err, result) {
+            db.collection(CVECollection).find().toArray(function (err, result) {
                 if (err) {
                     reject(err);
                 } else {
@@ -40,14 +38,18 @@ var getData = function (CVEname) {
     })
 };
 
-var getCVENamesForYear = function(year) {
+var findCVECollectionByCVEName = function(year) {
     var names = getCVENames();
 
     return names.filter(function (name) {
-        return year === name.slice(4);
-    });
+        return year === name.slice(4)
+    })
 };
 
-module.exports.getData = getData;
-module.exports.getCVENamesForYear = getCVENamesForYear;
+var getCVECollection = function (CVEName) {
+    return findCVECollectionByCVEName(CVEName)[0]
+};
+
+module.exports.getDataFromCVECollection = getDataFromCVECollection;
+module.exports.getCVECollection = getCVECollection;
 module.exports.getCVENames = getCVENames;
