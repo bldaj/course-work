@@ -22,7 +22,8 @@ links_dict = {
     'CVE-2014': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2014.xml.gz',
     'CVE-2015': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2015.xml.gz',
     'CVE-2016': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2016.xml.gz',
-    'CVE-2017': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2017.xml.gz'
+    'CVE-2017': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2017.xml.gz',
+    'CVE-2018': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2018.xml.gz'
 }
 
 
