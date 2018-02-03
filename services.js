@@ -1,6 +1,6 @@
 var MongoClient = require('mongodb').MongoClient;
 
-const url = 'mongodb://localhost:27017/CVE';
+const url = 'mongodb://localhost:27017';
 const CVENames = [
     'CVE-Modified', 'CVE-Recent',
     'CVE-2002', 'CVE-2003',
@@ -22,11 +22,12 @@ var getDataFromCVECollection = function (CVECollection) {
             if (err) {
                 reject(err);
             } else {
-                resolve(db);
+                resolve(db.db('CVE'));
             }
         })
     }).then(function (db) {
         return new Promise(function (resolve, reject) {
+            console.log(db);
             db.collection(CVECollection).find().toArray(function (err, result) {
                 if (err) {
                     reject(err);
