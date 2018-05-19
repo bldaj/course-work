@@ -5,7 +5,7 @@ from lxml import etree
 client = MongoClient()
 db = client.CVE
 
-client.drop_database('CVE')
+# client.drop_database('CVE')
 
 xml_names = ['CVE-Modified', 'CVE-Recent',
              'CVE-2002', 'CVE-2003',
@@ -15,7 +15,8 @@ xml_names = ['CVE-Modified', 'CVE-Recent',
              'CVE-2010', 'CVE-2011',
              'CVE-2012', 'CVE-2013',
              'CVE-2014', 'CVE-2015',
-             'CVE-2016', 'CVE-2017']
+             'CVE-2016', 'CVE-2017',
+             'CVE-2018']
 
 
 def create_namespaces_dict(root):
@@ -113,10 +114,9 @@ def write_data_to_mongoDB():
         parse_xml_doc(xml_name)
 
 
-begin_time = time.time()
+if __name__ == '__main__':
+    begin_time = time.time()
 
-write_data_to_mongoDB()
+    write_data_to_mongoDB()
 
-end_time = time.time()
-
-print('Summary time: %s' % (end_time - begin_time))
+    print('Summary time: %s' % (time.time() - begin_time))

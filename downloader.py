@@ -27,7 +27,7 @@ links_dict = {
 }
 
 
-def create_direcory_structure():
+def create_directory_structure():
     if not os.path.exists('CVEs'):
         os.mkdir('CVEs')
 
@@ -38,15 +38,14 @@ def create_direcory_structure():
         os.mkdir('CVEs/XMLs')
 
 
-def download_xml_archive(links_dict):
-    for name, url in links_dict.items():
+def download_xml_archive(links):
+    for name, url in links.items():
         print('Request to: %s' % name)
-        page = requests.get(url)
 
         # saving archive
         with open('CVEs/Archives/%s.gz' % name, 'wb') as f:
             print('Saving archive: %s' % name + '.gz')
-            f.write(page.content)
+            f.write(requests.get(url).content)
 
         # reading archive
         with gzip.open('CVEs/Archives/%s.gz' % name, 'rb') as f:
@@ -59,11 +58,10 @@ def download_xml_archive(links_dict):
             f.write(xml_content)
 
 
-begin_time = time.time()
+if __name__ == '__main__':
+    begin_time = time.time()
 
-create_direcory_structure()
-download_xml_archive(links_dict)
+    create_directory_structure()
+    download_xml_archive(links_dict)
 
-end_time = time.time()
-
-print('Summary time: %s' % (end_time - begin_time))
+    print('Summary time: %s' % (time.time() - begin_time))
