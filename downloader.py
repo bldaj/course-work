@@ -82,43 +82,38 @@ def is_updated_on_nvd(cve_file_id: str):
             return False
 
 
-def download_and_unzip_cve_files():
-    current_year = datetime.today().year
-
+def download_and_unzip_cve_file(name: str):
     xml_base_link = settings.get('links', {}).get('xml_base_link', 'https://nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-')
     xml_ending_link = settings.get('links', {}).get('xml_ending_link', '.xml.gz')
 
+    cve_file_name = cve_prefix + name
+
+    if is_updated_on_nvd(cve_file_id=name):
+        print('Downloading {0} file'.format(cve_file_name))
+
+        url = xml_base_link + name + xml_ending_link
+
+        save_archive(name=cve_file_name, content=requests.get(url).content)
+        save_xml(name=cve_file_name, xml_content=read_archive(name=cve_file_name))
+    else:
+        print("File {0} wasn't modified".format(cve_file_name))
+
+
+def download_and_unzip_cve_files():
+    current_year = datetime.today().year
+
     # download by year
     for year in range(2002, current_year + 1):
-        cve_file_name = cve_prefix + str(year)
-
-        if is_updated_on_nvd(cve_file_id=str(year)):
-            print('Downloading {0} file'.format(cve_file_name))
-
-            url = xml_base_link + str(year) + xml_ending_link
-
-            save_archive(name=cve_file_name, content=requests.get(url).content)
-            save_xml(name=cve_file_name, xml_content=read_archive(name=cve_file_name))
-        else:
-            print("File {0} wasn't modified".format(cve_file_name))
+        download_and_unzip_cve_file(name=str(year))
 
     # download recent and modified files
     for name in ['recent', 'modified']:
-        cve_file_name = cve_prefix + str(name)
-
-        if is_updated_on_nvd(cve_file_id=name):
-            print('Downloading {0} file'.format(cve_file_name))
-
-            url = xml_base_link + str(name) + xml_ending_link
-
-            save_archive(name=cve_file_name, content=requests.get(url).content)
-            save_xml(name=cve_file_name, xml_content=read_archive(name=cve_file_name))
-        else:
-            print("File {0} wasn't modified".format(cve_file_name))
+        download_and_unzip_cve_file(name=name)
 
 
 def main():
     begin_time = time.time()
+    print('Downloader started')
 
     create_directory_structure()
     download_and_unzip_cve_files()
