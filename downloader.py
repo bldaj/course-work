@@ -1,30 +1,16 @@
 import os
-import requests
 import gzip
 import time
+from datetime import datetime
 
+import requests
 
-links_dict = {
-    'CVE-Modified': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-modified.xml.gz',
-    'CVE-Recent': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-recent.xml.gz',
-    'CVE-2002': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2002.xml.gz',
-    'CVE-2003': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2003.xml.gz',
-    'CVE-2004': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2004.xml.gz',
-    'CVE-2005': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2005.xml.gz',
-    'CVE-2006': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2006.xml.gz',
-    'CVE-2007': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2007.xml.gz',
-    'CVE-2008': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2008.xml.gz',
-    'CVE-2009': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2009.xml.gz',
-    'CVE-2010': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2010.xml.gz',
-    'CVE-2011': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2011.xml.gz',
-    'CVE-2012': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2012.xml.gz',
-    'CVE-2013': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2013.xml.gz',
-    'CVE-2014': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2014.xml.gz',
-    'CVE-2015': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2015.xml.gz',
-    'CVE-2016': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2016.xml.gz',
-    'CVE-2017': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2017.xml.gz',
-    'CVE-2018': 'https://static.nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-2018.xml.gz'
-}
+import ts_db
+from utils import unify_datetime
+from settings import settings
+
+ts_file = settings.get('files', {}).get('ts_file', 'timestamps.json')
+cve_prefix = settings.get('files', {}).get('cve_prefix', 'CVE-')
 
 
 def create_directory_structure():
@@ -38,30 +24,102 @@ def create_directory_structure():
         os.mkdir('CVEs/XMLs')
 
 
-def download_xml_archive(links):
-    for name, url in links.items():
-        print('Request to: %s' % name)
-
-        # saving archive
-        with open('CVEs/Archives/%s.gz' % name, 'wb') as f:
-            print('Saving archive: %s' % name + '.gz')
-            f.write(requests.get(url).content)
-
-        # reading archive
-        with gzip.open('CVEs/Archives/%s.gz' % name, 'rb') as f:
-            print('Reading archive: %s' % name + '.gz')
-            xml_content = f.read()
-
-        # saving archive content (xml doc)
-        with open('CVEs/XMLs/%s' % name, 'wb') as f:
-            print('Saving archive content: %s\n' % name)
-            f.write(xml_content)
+#         # reading archive
+#         with gzip.open('CVEs/Archives/%s.gz' % name, 'rb') as f:
+#             print('Reading archive: %s' % name + '.gz')
+#             xml_content = f.read()
+#
+#         # saving archive content (xml doc)
+#         with open('CVEs/XMLs/%s' % name, 'wb') as f:
+#             print('Saving archive content: %s\n' % name)
+#             f.write(xml_content)
 
 
-if __name__ == '__main__':
+def save_archive(name, content):
+    with open('CVEs/Archives/%s.gz' % name, 'wb') as f:
+        print('Saving archive: %s' % name + '.gz')
+        f.write(content)
+
+
+def create_meta_link(cve_file: str):
+    meta_base_link = settings.get('links', {}).get(
+        'meta_base_link',
+        'https://nvd.nist.gov/feeds/xml/cve/trans/es/nvdcve-'
+    )
+    meta_ending_link = settings.get('links', {}).get('meta_ending_link', 'trans.meta')
+
+    return meta_base_link + str(cve_file) + meta_ending_link
+
+
+def get_meta_ts_from_nvd(cve_file: str):
+    meta_ts = unify_datetime(datetime.now())
+
+    splitted_content = requests.get(create_meta_link(cve_file)).text.split('\n')
+
+    for content in splitted_content:
+        if 'lastModifiedDate' in content:
+            meta_ts = content.replace('lastModifiedDate:', '').replace('\r', '')
+            return unify_datetime(meta_ts)
+
+    return meta_ts
+
+
+def is_updated_on_nvd(cve_file_id: str):
+    meta_ts = get_meta_ts_from_nvd(cve_file_id)
+
+    cve_file_id = cve_prefix + cve_file_id
+
+    ts_from_db = ts_db.get_ts(cve_file_id=cve_file_id)
+
+    if ts_from_db is None:
+        ts_db.insert_ts(cve_file_id=cve_file_id, ts_value=meta_ts)
+        return True
+    else:
+        if meta_ts > ts_from_db:
+            return True
+        else:
+            return False
+
+
+def download_archives():
+    current_year = datetime.today().year
+
+    xml_base_link = settings.get('links', {}).get('xml_base_link', 'https://nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-')
+    xml_ending_link = settings.get('links', {}).get('xml_ending_link', '.xml.gz')
+
+    # download by year
+    for year in range(2002, current_year + 1):
+        cve_file_name = cve_prefix + str(year)
+
+        if is_updated_on_nvd(cve_file_id=str(year)):
+            print('Download {0} file'.format(cve_file_name))
+
+            url = xml_base_link + str(year) + xml_ending_link
+
+            save_archive(name=cve_file_name, content=requests.get(url).content)
+        else:
+            print("File {0} wasn't modified".format(cve_file_name))
+
+    # download recent and modified files
+    for name in ['recent', 'modified']:
+        cve_file_name = cve_prefix + str(name)
+
+        if is_updated_on_nvd(cve_file_id=name):
+            print('Download {0} file'.format(cve_file_name))
+
+            url = xml_base_link + str(name) + xml_ending_link
+
+            save_archive(name=cve_file_name, content=requests.get(url).content)
+
+
+def main():
     begin_time = time.time()
 
     create_directory_structure()
-    download_xml_archive(links_dict)
+    download_archives()
 
-    print('Summary time: %s' % (time.time() - begin_time))
+    print('Summary time: {0}'.format(time.time() - begin_time))
+
+
+if __name__ == '__main__':
+    main()
