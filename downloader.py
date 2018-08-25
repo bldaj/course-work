@@ -24,20 +24,21 @@ def create_directory_structure():
         os.mkdir('CVEs/XMLs')
 
 
-#         # reading archive
-#         with gzip.open('CVEs/Archives/%s.gz' % name, 'rb') as f:
-#             print('Reading archive: %s' % name + '.gz')
-#             xml_content = f.read()
-#
-#         # saving archive content (xml doc)
-#         with open('CVEs/XMLs/%s' % name, 'wb') as f:
-#             print('Saving archive content: %s\n' % name)
-#             f.write(xml_content)
+def save_xml(name, xml_content):
+    with open('CVEs/XMLs/{0}'.format(name), 'wb') as f:
+        print('Saving archive content: {0}\n'.format(name))
+        f.write(xml_content)
+
+
+def read_archive(name):
+    with gzip.open('CVEs/Archives/{0}.gz'.format(name), 'rb') as f:
+        print('Reading archive: {0}'.format(name + '.gz'))
+        return f.read()
 
 
 def save_archive(name, content):
-    with open('CVEs/Archives/%s.gz' % name, 'wb') as f:
-        print('Saving archive: %s' % name + '.gz')
+    with open('CVEs/Archives/{0}.gz'.format(name), 'wb') as f:
+        print('Saving archive: {0}'.format(name + '.gz'))
         f.write(content)
 
 
@@ -81,7 +82,7 @@ def is_updated_on_nvd(cve_file_id: str):
             return False
 
 
-def download_archives():
+def download_and_unzip_cve_files():
     current_year = datetime.today().year
 
     xml_base_link = settings.get('links', {}).get('xml_base_link', 'https://nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-')
@@ -92,11 +93,12 @@ def download_archives():
         cve_file_name = cve_prefix + str(year)
 
         if is_updated_on_nvd(cve_file_id=str(year)):
-            print('Download {0} file'.format(cve_file_name))
+            print('Downloading {0} file'.format(cve_file_name))
 
             url = xml_base_link + str(year) + xml_ending_link
 
             save_archive(name=cve_file_name, content=requests.get(url).content)
+            save_xml(name=cve_file_name, xml_content=read_archive(name=cve_file_name))
         else:
             print("File {0} wasn't modified".format(cve_file_name))
 
@@ -105,18 +107,21 @@ def download_archives():
         cve_file_name = cve_prefix + str(name)
 
         if is_updated_on_nvd(cve_file_id=name):
-            print('Download {0} file'.format(cve_file_name))
+            print('Downloading {0} file'.format(cve_file_name))
 
             url = xml_base_link + str(name) + xml_ending_link
 
             save_archive(name=cve_file_name, content=requests.get(url).content)
+            save_xml(name=cve_file_name, xml_content=read_archive(name=cve_file_name))
+        else:
+            print("File {0} wasn't modified".format(cve_file_name))
 
 
 def main():
     begin_time = time.time()
 
     create_directory_structure()
-    download_archives()
+    download_and_unzip_cve_files()
 
     print('Summary time: {0}'.format(time.time() - begin_time))
 
